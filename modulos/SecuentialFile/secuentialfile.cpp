@@ -20,7 +20,7 @@ struct IndexList {
     IndexList() : head(nullptr) {}
 };
 
-IndexList globalIndexList; // Índice global en RAM
+IndexList globalIndexList;
 
 vector<string> dividir(const string& linea, char delimitador) {
     vector<string> tokens;
@@ -85,7 +85,6 @@ IndexNode* buscarEnIndice(IndexList& indice, int edad) {
     return nullptr;
 }
 
-// Nueva función para buscar por rango de edades
 vector<string> buscarPorRango(IndexList& indice, int edadMin, int edadMax) {
     vector<string> resultados;
     IndexNode* current = indice.head;
@@ -127,18 +126,18 @@ IndexList leerCSV(const string& nombre_archivo) {
 
     if (!archivo.is_open()) {
         cerr << "Error al abrir el archivo: " << nombre_archivo << endl;
-        return indice; // Retorna índice vacío si no se puede abrir el archivo
+        return indice;
     }
 
-    getline(archivo, linea); // Leer cabecera
+    getline(archivo, linea);
 
     while (getline(archivo, linea)) {
         vector<string> columnas = dividir(linea, ',');
         if (columnas.size() < 4) {
             cerr << "Error en el formato de la línea: " << linea << endl;
-            continue; // Si la línea no tiene suficientes columnas, continuar con la siguiente
+            continue;
         }
-        int edad = stoi(columnas[3]); // La columna 3 es la edad
+        int edad = stoi(columnas[3]);
         insertarEnIndice(indice, edad, posicion);
         posicion++;
     }
@@ -158,10 +157,10 @@ void agregarRegistro(const string& nombre_archivo, const string& registro) {
     vector<string> columnas = dividir(registro, ',');
     if (columnas.size() < 4) {
         cerr << "Error en el formato del registro: " << registro << endl;
-        return; // Si el registro no tiene suficientes columnas, retornar
+        return;
     }
 
-    int edad = stoi(columnas[3]); // La columna 3 es la edad
+    int edad = stoi(columnas[3]);
     int position = globalIndexList.head == nullptr ? 0 : (globalIndexList.head->position + 1);
 
     insertarEnIndice(globalIndexList, edad, position);
@@ -175,14 +174,10 @@ void guardarCSV(const string& nombre_archivo) {
         return;
     }
 
-    // Escribir la cabecera
     archivo << "Nombre,Apellido,Carrera,Edad,Codigo\n";
 
-    // Escribir cada registro del índice
     IndexNode* current = globalIndexList.head;
     while (current != nullptr) {
-        // Aquí asumo que los datos son ficticios para el ejemplo.
-        // Tendrías que reemplazar esto con el acceso a los datos reales.
         archivo << "Estudiante" << current->position << ",Apellido" << current->position
                 << ",Carrera" << current->position << "," << current->edad << ",Codigo" << current->position << endl;
         current = current->next;
@@ -197,7 +192,7 @@ void eliminarRegistro(const string& nombre_archivo, int edad) {
 }
 
 extern "C" {
-    void initIndice(const char* nombre_archivo = "estudiantes10.csv") { // Usar el archivo por defecto
+    void initIndice(const char* nombre_archivo = "estudiantes10.csv") {
         globalIndexList = leerCSV(nombre_archivo);
     }
 
@@ -230,7 +225,6 @@ extern "C" {
         vector<string> res = buscarPorRango(globalIndexList, edadMin, edadMax);
         *size = res.size();
 
-        // Asignar memoria para el array de resultados
         *resultados = (char**)malloc(*size * sizeof(char*));
 
         for (int i = 0; i < *size; ++i) {
@@ -249,31 +243,25 @@ extern "C" {
 }
 
 int main() {
-    // Inicializar el índice con un archivo CSV
     initIndice("estudiantes10.csv");
     
-    // Agregar un registro al archivo y al índice
     const char* nuevoRegistro = "Juan,Perez,CS,23,73413194";
     //agregarRegistroDesdePython("estudiantes10.csv", nuevoRegistro);
     //cout << "Se ha agregado un nuevo registro." << endl;
 
-    // Imprimir el índice completo
     cout << "Imprimiendo índice:" << endl;
     imprimirIndiceDesdePython();
     
-    // Buscar un registro por edad
     int edadABuscar = 23;
     char* resultado;
     cout << "Buscando registro con edad: " << edadABuscar << endl;
     buscarRegistroDesdePython(edadABuscar, &resultado);
     cout << resultado << endl;
-    delete[] resultado; // Liberar memoria asignada
+    delete[] resultado;
 
-    // Eliminar un registro por edad
     eliminarRegistroDesdePython("estudiantes10.csv", 23);
     cout << "Se ha eliminado el registro con edad: " << edadABuscar << endl;
 
-    // Buscar por rango de edad
     int edadMin = 20, edadMax = 25;
     char** resultados;
     int size;
@@ -282,11 +270,10 @@ int main() {
     
     for (int i = 0; i < size; ++i) {
         cout << resultados[i] << endl;
-        free(resultados[i]); // Liberar memoria de cada resultado
+        free(resultados[i]);
     }
-    free(resultados); // Liberar memoria del array de resultados
+    free(resultados);
 
-    // Liberar el índice
     liberar();
     
     return 0;
